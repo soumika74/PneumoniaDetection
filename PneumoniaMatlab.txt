@@ -1,0 +1,34 @@
+clc;
+clear all;
+close all;
+Directory = 'E:\project\PNEUMONIA';
+% Read images from Images folder
+Imgs = dir(Directory);
+for j=1:length(Imgs)
+    thisname = Imgs(j).name;
+    thisfile = fullfile(Directory, thisname);
+    try
+      I = imread(thisfile);  % try to read image
+      %convert=rgb2gray(I);
+      dd=medfilt2(I);
+      new=medfilt2(dd);
+      offsets0 = [zeros(3,1) (1:3)'];
+      glcm=graycomatrix(new,'Offset',offsets0);
+      stats = graycoprops(glcm,'Contrast Correlation Energy Homogeneity');
+      prob=imhist(new)/(size(new,1)*size(new,2));
+      entropy=sum(-log2(prob).*prob);
+      mse=sum(sum((I-new).^2))/(size(I,1)*size(I,2));
+      psnr=10 * log10(1^2 / mse);
+      ez=edge(new,'canny');
+      f=im2uint8(ez);
+      fin=f+new;
+      t=[entropy,mse,psnr];
+      disp('Info : ')
+      disp(j);
+      disp(stats);
+      disp('    entropy    mse      psnr');  
+      disp(t);
+      disp('************************************');
+   catch
+   end
+end
